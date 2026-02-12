@@ -45,6 +45,26 @@ async def handle_private_message(update: Update, context: ContextTypes.DEFAULT_T
     user = update.effective_user
     user_message = update.message.text
 
+async def answer_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Сюда впиши свои ID через запятую
+    ADMIN_IDS = [5300487037, 5767746721]  # ЗАМЕНИ НА СВОИ ID
+
+    if update.effective_user.id not in ADMIN_IDS:
+        await update.message.reply_text("⛔ Недостаточно прав.")
+        return
+
+    try:
+        parts = update.message.text.split(' ', 2)
+        if len(parts) < 3:
+            await update.message.reply_text("❌ Формат: /answer ID_пользователя Текст")
+            return
+        user_id = int(parts[1])
+        text = parts[2]
+        await context.bot.send_message(chat_id=user_id, text=text)
+        await update.message.reply_text(f"✅ Ответ отправлен")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Ошибка: {e}")
+
     # Формируем информационное сообщение для ответственных
     user_info = (
         f"📩 *Новое обращение в приемную*\n"
@@ -87,6 +107,8 @@ def main():
         filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
         handle_private_message
     ))
+
+    application.add_handler(CommandHandler("answer", answer_command))
 
     logger.info("Бот 'Приемная Липатовского' запущен...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
